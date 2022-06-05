@@ -25,7 +25,9 @@ public class Hl72json implements Runnable {
     @Option(names = { "--replace-linebreaks" }, description = "Replace linefeeds/ linebreaks (\\r\\n or \\n) with \\r. Turning this off may break hl7 decoding")
     boolean replaceLinebreaks = true;
 
-    @Option(names = { "--file" }, description = "HL7 file to be converted") String filepath = null;
+    // @Option(names = { "--file" }, description = "HL7 file to be converted", required = true)
+    @CommandLine.Parameters(arity = "1", description = "HL7 file to be converted")
+    String filepath = null;
 
     @Override
     public void run() {
@@ -36,13 +38,11 @@ public class Hl72json implements Runnable {
             xml = true; // take xml as default output format
         }
 
-        String msg = null;
-        if (filepath != null) {
-            try {
-                 msg = Files.readString(Path.of(filepath));
-            } catch (IOException e) {
-                throw new RuntimeException("Error reading string from file " + filepath);
-            }
+        String msg;
+        try {
+             msg = Files.readString(Path.of(filepath));
+        } catch (IOException e) {
+            throw new RuntimeException("Error reading string from file " + filepath + e);
         }
 
         if (replaceLinebreaks) {
@@ -58,7 +58,7 @@ public class Hl72json implements Runnable {
             XMLParser xmlParser = new DefaultXMLParser();
             xmlMessage = xmlParser.encode(hapiMsg);
         } catch (HL7Exception e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Error: HL7 Parsing failed" + e);
         }
 
         if (xml) {
@@ -68,23 +68,6 @@ public class Hl72json implements Runnable {
             System.out.println(XML.toJSONObject(xmlMessage).toString(4));
         }
     }
-
-    /*
-          System.out.println("----- ExampleMain started -------");
-      try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in))) {
-          String line = null;
-          while (true) {
-              if ((line = reader.readLine()) != null) {
-                  System.out.println("echo>> " + line);
-              } else {
-                  //input finishes
-                  break;
-              }
-          }
-      } catch (Exception e) {
-          System.err.println(e);
-      }
-     */
 
     public static void main(String[] args) {
         int exitCode = new CommandLine(new Hl72json()).execute(args);
