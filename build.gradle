@@ -29,6 +29,6 @@ test {
 
 jar {
     manifest {
-        attributes 'Main-Class': 'hl72json'
+        attributes 'Main-Class': 'Hl72json'
     }
 }
